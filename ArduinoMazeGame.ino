@@ -16,8 +16,7 @@ using namespace std;
 //int y = 15;
 
 int x = 14;
-int y = 14;
-bool win = false;
+int y = 13;
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(16, 16, PIN,
                             NEO_MATRIX_TOP     + NEO_MATRIX_RIGHT +
@@ -25,8 +24,8 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(16, 16, PIN,
                             NEO_GRB            + NEO_KHZ800);
 
 const int board[16][16] PROGMEM = {
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1},
-  {1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+  {1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1},
   {1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1},
   {1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
   {1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1},
@@ -42,6 +41,7 @@ const int board[16][16] PROGMEM = {
   {1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1},
   {1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 };
+
 
 Adafruit_LSM6DS33 lsm6ds33;
 void setup(void) {
@@ -123,14 +123,42 @@ void loop() {
   }
 
   // check to see if it's a win
-  if (x == 14 &&  getY(x, y) == 15){
-    matrix.setCursor(0, 0);
-    matrix.fillScreen(0);
-    matrix.print(F("You win!"));
-    win = true;
+  if (x == 14 &&  getY(x, y) == 14){
+
+    delay(500);
+
+    
+    // initiate win animation
+    for(int offset = 1; offset < 14; offset++){
+      int target_x = 14 - offset;
+      int target_y = 14 - offset;
+      int old_target_x = 15 - offset;
+      int old_target_y = 15 - offset;
+      
+      // erase old shape
+      for(int i = 14; i >= target_x; i--){
+        matrix.drawPixel(i, getY(i, old_target_y), 0);
+      }
+      for(int j = 14; j >= old_target_y; j--){
+        matrix.drawPixel(j, getY(target_x, j), 0);
+      }
+      
+      // draw new shape
+      for(int i = 14; i >= target_x; i--){
+        matrix.drawPixel(i, getY(i, target_y), matrix.Color(255,255,255));
+      }
+      for(int j = 14; j >= target_y; j--){
+        matrix.drawPixel(j, getY(target_x, j), matrix.Color(255,255,255));
+      }
+
+      matrix.show();
+      delay(100);
+    }
+    
+    return;
   }
 
-  if ((old_x != x | old_y != y) and win != true) {
+  if (old_x != x | old_y != y) {
     // update board elements
     for (int i = 0; i < 16; i++) {
       for (int j = 0; j < 16; j++) {
@@ -140,6 +168,9 @@ void loop() {
         }
         if (item == 0) {
           matrix.drawPixel(j, getY(j, i), BLACK);
+        }
+        if (item == 2) {
+          matrix.drawPixel(j, getY(j, i), matrix.Color(255,255,255));
         }
       }
     }
