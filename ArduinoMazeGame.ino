@@ -1,4 +1,5 @@
 #include <Adafruit_LSM6DS33.h>
+
 #include <Adafruit_NeoMatrix.h>
 
 #define PIN 6
@@ -15,15 +16,12 @@ using namespace std;
 int x = 1;
 int y = 15;
 
-//int x = 14;
-//int y = 13;
-
 boolean win = false;
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(16, 16, PIN,
-                            NEO_MATRIX_TOP     + NEO_MATRIX_RIGHT +
-                            NEO_MATRIX_COLUMNS + NEO_MATRIX_PROGRESSIVE,
-                            NEO_GRB            + NEO_KHZ800);
+  NEO_MATRIX_TOP + NEO_MATRIX_RIGHT +
+  NEO_MATRIX_COLUMNS + NEO_MATRIX_PROGRESSIVE,
+  NEO_GRB + NEO_KHZ800);
 
 const int board[16][16] PROGMEM = {
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -70,7 +68,7 @@ void setup(void) {
   Serial.begin(115200);
   while (!Serial)
     delay(10); // will pause Zero, Leonardo, etc until serial console opens
-    
+
   if (!lsm6ds33.begin_SPI(LSM_CS, LSM_SCK, LSM_MISO, LSM_MOSI)) {
     Serial.println(F("F"));
     while (1) {
@@ -91,8 +89,7 @@ void setup(void) {
 int getY(int x, int y) {
   if (x % 2 == 1) {
     return y;
-  }
-  else {
+  } else {
     return 15 - y;
   }
 }
@@ -102,7 +99,7 @@ void loop() {
   sensors_event_t accel;
   sensors_event_t gyro;
   sensors_event_t temp;
-  lsm6ds33.getEvent(&accel, &gyro, &temp);
+  lsm6ds33.getEvent( & accel, & gyro, & temp);
   float accel_x = accel.acceleration.x;
   float accel_y = accel.acceleration.y;
 
@@ -117,20 +114,17 @@ void loop() {
       if (x > 0) {
         x--;
       }
-    }
-    else {
+    } else {
       if (x < 15) {
         x++;
       }
     }
-  }
-  else if (accel_y > 2 | accel_y < -2) {
+  } else if (accel_y > 2 | accel_y < -2) {
     if (accel_y > 0) {
       if (y > 0) {
         y--;
       }
-    }
-    else {
+    } else {
       if (y < 15) {
         y++;
       }
@@ -138,56 +132,52 @@ void loop() {
   }
 
   // check to see if board[y][x] is 0
-  if (pgm_read_word(&board[y][x]) == 1) {
+  if (pgm_read_word( & board[y][x]) == 1) {
     y = old_y;
     x = old_x;
   }
 
   // check to see if it's a win
-  if (x == 14 &&  getY(x, y) == 14 && !win){
+  if (x == 14 && getY(x, y) == 14 && !win) {
     win = true;
     delay(500);
-    
-    
+
     // initiate win animation
-    for(int offset = 0; offset < 16; offset++){
+    for (int offset = 0; offset < 16; offset++) {
       int target_x = 1 + offset;
       int target_y = 14 - offset;
       int old_target_x = offset;
       int old_target_y = 15 - offset;
-      
+
       // erase old shape and draw you win
-      if(offset > 0){
-        for(int i = 0; i <= target_x; i++){
-          int item = pgm_read_word(&youWin[i][old_target_y]);
-          if(item == 1){
-            matrix.drawPixel(i, getY(i, old_target_y), matrix.Color(64,64,64));
-          }
-          else {
+      if (offset > 0) {
+        for (int i = 0; i <= target_x; i++) {
+          int item = pgm_read_word( & youWin[i][old_target_y]);
+          if (item == 1) {
+            matrix.drawPixel(i, getY(i, old_target_y), matrix.Color(64, 64, 64));
+          } else {
             matrix.drawPixel(i, getY(i, old_target_y), 0);
           }
         }
-        for(int j = 15; j >= old_target_y; j--){
-          int item = pgm_read_word(&youWin[old_target_x][j]);
-          if(item == 1){
-            matrix.drawPixel(old_target_x, getY(old_target_x, j), matrix.Color(64,64,64));
-          }
-          else {
+        for (int j = 15; j >= old_target_y; j--) {
+          int item = pgm_read_word( & youWin[old_target_x][j]);
+          if (item == 1) {
+            matrix.drawPixel(old_target_x, getY(old_target_x, j), matrix.Color(64, 64, 64));
+          } else {
             matrix.drawPixel(old_target_x, getY(old_target_x, j), 0);
           }
         }
-      }
-      else {
+      } else {
         matrix.drawPixel(0, getY(0, 15), 0);
       }
-      
+
       // draw new shape
-      if(offset < 15){
-        for(int i = 0; i <= target_x; i++){
-          matrix.drawPixel(i, getY(i, target_y), matrix.Color(0,255,0));
+      if (offset < 15) {
+        for (int i = 0; i <= target_x; i++) {
+          matrix.drawPixel(i, getY(i, target_y), matrix.Color(0, 255, 0));
         }
-        for(int j = 15; j >= target_y; j--){
-          matrix.drawPixel(target_x, getY(target_x, j), matrix.Color(0,255,0));
+        for (int j = 15; j >= target_y; j--) {
+          matrix.drawPixel(target_x, getY(target_x, j), matrix.Color(0, 255, 0));
         }
       }
 
@@ -200,7 +190,7 @@ void loop() {
     // update board elements
     for (int i = 0; i < 16; i++) {
       for (int j = 0; j < 16; j++) {
-        int item = pgm_read_word(&board[j][i]);
+        int item = pgm_read_word( & board[j][i]);
         if (item == 1) {
           matrix.drawPixel(j, getY(j, i), matrix.Color(64, 64, 64));
         }
@@ -208,11 +198,11 @@ void loop() {
           matrix.drawPixel(j, getY(j, i), BLACK);
         }
         if (item == 2) {
-          matrix.drawPixel(j, getY(j, i), matrix.Color(0,255,0));
+          matrix.drawPixel(j, getY(j, i), matrix.Color(0, 255, 0));
         }
       }
     }
-    matrix.drawPixel(y, getY(y, x), matrix.Color(255 , 0, 0));
+    matrix.drawPixel(y, getY(y, x), matrix.Color(255, 0, 0));
   }
 
   matrix.show();
